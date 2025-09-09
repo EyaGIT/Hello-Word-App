@@ -41,8 +41,4 @@ jobs:
         run: |
           # docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
           # docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
-<<<<<<< Updated upstream
-          docker push ${{ secrets.DOCKER_USERNAME }}/myapp:v${{ steps.version.outputs.version }}
-=======
           docker push eyabelkadhi/devops:latest
->>>>>>> Stashed changes
