@@ -1,7 +1,7 @@
 name: CI/CD Pipeline
 on:
   push:
-    branches: [ ci ]
+    branches: [ main ]
 
 jobs:
   test:
