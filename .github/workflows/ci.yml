@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image for testing
+        run: docker build -t myapp:test .
+
+      - name: Test running container
+        run: |
+          docker run -d --name myapp_test -p 8000:8000 myapp:test
+          sleep 5
+          curl http://localhost:8000 | grep "Hello World"
+          docker stop myapp_test
+          docker rm myapp_test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Get and increment version
+        id: version
+        run: |
+          # Simple counter using GitHub API to get workflow run count
+          RUN_NUMBER=$(( ${{ github.run_number }} + 1 ))
+          echo "version=1.$RUN_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Build and tag Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp:v${{ steps.version.outputs.version }}
+
+      - name: Push Docker image
+        run: |
+          # docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+          # docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/myapp:v${{ steps.version.outputs.version }}
