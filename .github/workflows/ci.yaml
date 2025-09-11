@@ -50,5 +50,5 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: hello
+          app-name: hello1
           images: 'eyabelkadhi/devops:latest'
